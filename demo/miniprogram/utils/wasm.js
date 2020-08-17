@@ -6605,6 +6605,7 @@ Module["imshow"] = function (canvasSource, mat, contextSource) {
         var imgData = canvas.createImageData(new Uint8ClampedArray(img.data),img.cols,img.rows);
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.putImageData(imgData, 0, 0);
+        img.delete();
         cv.imshowed=false;    
     }
 };
