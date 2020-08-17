@@ -6509,36 +6509,55 @@ noExitRuntime = true;
 
 
 Module["imread"] = function (imageSource, callback) {
+    // @param imageSource 可以是canvas的id，也可以是以http开头的图片地址。如果是图片地址，则需要存在一个id为#OffscreenCanvas的canvas
+    // @param  callback 回调函数
 
     var cv = Module;
-    var canvas=Module["canvas"];
-    var ctx =Module["canvascontext"];
-    var img = canvas.createImage();
-    img.src = imageSource;
-    img.onload = function () {
-        ctx.drawImage(img, 0, 0, img.width, img.height)
-        var imgData = ctx.getImageData(0, 0, canvas.width, canvas.width);
-        callback(cv.matFromImageData(imgData));
+    var canvas, context;
+    if (imageSource.startsWith("http")) {
+        wx.createSelectorQuery().select('#OffscreenCanvas').node(function (res) {
+            canvas = res.node;
+            context=canvas.getContext("2d");
 
-    }
-    img.onerror=function(evt){
-        console.log(evt);
+            var img = canvas.createImage();
+            img.src = imageSource
+            img.onload = function () {
+                var dpr=wx.getSystemInfoSync().pixelRatio;
+                canvas.width=img.width*dpr;
+                canvas.height=img.height*dpr;
+                context.scale(dpr,dpr);
+                context.drawImage(img, 0, 0, img.width, img.height)
+                var imgData = context.getImageData(0, 0, canvas.width, canvas.height);
+                context.scale(1/dpr,1/dpr);
+                callback(cv.matFromImageData(imgData));
+            }
+            img.onerror=function(evt){
+                console.log(evt);
+            }
+        }).exec()
+    } else {
+        wx.createSelectorQuery().select(imageSource).node(function (res) {
+            canvas = res.node;
+            context = canvas.getContext("2d");
+            var imgData = context.getImageData(0, 0, canvas.width, canvas.height);
+            callback(cv.matFromImageData(imgData));
+        }).exec()
     }
 };
 Module["imshowed"]=false;
-Module["imshow"] = function (mat) {
+var canvasCatch = {}
+Module["imshow"] = function (canvasSource, mat) {
     if(Module["imshowed"]){
         return false;
     }
     var cv = Module;
-    cv.imshowed=true;
-    var canvas = Module["canvas"];
-    var ctx = Module["canvascontext"];
+    var canvas, context;
     var img = mat;
     var img = new cv.Mat;
     var depth = mat.type() % 8;
     var scale = depth <= cv.CV_8S ? 1 : depth <= cv.CV_32S ? 1 / 256 : 255;
     var shift = depth === cv.CV_8S || depth === cv.CV_16S ? 128 : 0;
+    cv.imshowed=true;
     mat.convertTo(img, cv.CV_8U, scale, shift);
     switch (img.type()) {
         case cv.CV_8UC1:
@@ -6553,10 +6572,33 @@ Module["imshow"] = function (mat) {
             throw new Error("Bad number of channels (Source image must have 1, 3 or 4 channels)");
             return
     }
-    var imgData = canvas.createImageData(new Uint8ClampedArray(img.data),img.cols,img.rows);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.putImageData(imgData, 0, 0);
-    cv.imshowed=false;
+    
+    if (canvasCatch[canvasSource] == undefined) {
+        wx.createSelectorQuery().select(canvasSource).node(function (res) {
+            canvas = res.node;
+            context = canvas.getContext("2d");
+            var dpr=wx.getSystemInfoSync().pixelRatio;
+            canvas.width=canvas._width*dpr;
+            canvas.height=canvas._height*dpr;
+            context.scale(dpr,dpr);
+            canvasCatch[canvasSource] = {
+                canvas: canvas,
+                context: context
+            }
+            var imgData = canvas.createImageData(new Uint8ClampedArray(img.data),img.cols,img.rows);
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.putImageData(imgData, 0, 0);
+            cv.imshowed=false;
+            console.log(canvas, context, "noCatch")
+        }).exec()
+    } else {
+        canvas = canvasCatch[canvasSource]["canvas"]
+        context = canvasCatch[canvasSource]["context"]
+        var imgData = canvas.createImageData(new Uint8ClampedArray(img.data),img.cols,img.rows);
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.putImageData(imgData, 0, 0);
+        cv.imshowed=false;    
+    }
 };
 
 function Range(start, end) {
@@ -6816,14 +6858,6 @@ function init(args) {
     Module["useCache"] = args.useCache ? args.useCache : false;
     if (typeof Module["asm"]["dynCall_iiiiiijj"] != "function") {
         if (!Module["inited"]) {
-            wx.createSelectorQuery().select('#OffscreenCanvas').node(function (res) {
-                Module["canvas"] = res.node;
-                var dpr=wx.getSystemInfoSync().pixelRatio;
-                Module["canvas"].width=res.node._width*dpr;
-                Module["canvas"].height=res.node._height*dpr;
-                Module["canvascontext"]=Module["canvas"].getContext("2d");
-                Module["canvascontext"].scale(dpr,dpr);
-            }).exec()
             asm = createWasm();
             run();
             Module["inited"] = true;

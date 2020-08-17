@@ -18,12 +18,21 @@ Page({
       }
     })
   },
+
+  showPic: function() {
+    var imageSource = "http://www.aiotforest.com/lena.png"
+    cv.imread(imageSource, function (e) {
+      console.log(e,"imdata")
+      cv.imshow("#toShow", e)
+    })
+  },
+
   getgray: function () {
     cv.imread("http://www.aiotforest.com/lena.png",function(mat){
       let src = mat;
       let dstx = new cv.Mat();
       cv.cvtColor(src, src, cv.COLOR_RGB2GRAY, 0);
-      cv.imshow(src);
+      cv.imshow("#toShow", src);
       src.delete(); 
       dstx.delete();
     });
@@ -116,7 +125,7 @@ Page({
         roiGray.delete(); 
         roiSrc.delete();
     }
-    cv.imshow(src);
+    cv.imshow("#toShow", src);
     src.delete(); 
     gray.delete(); 
     faces.delete();
@@ -134,7 +143,9 @@ Page({
   /**
    * 生命周期函数--监听页面初次渲染完成
    */
-  onReady: function () {},
+  onReady: function () {
+    
+  },
 
   /**
    * 生命周期函数--监听页面显示

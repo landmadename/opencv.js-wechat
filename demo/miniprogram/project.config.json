@@ -7,6 +7,7 @@
 		"urlCheck": false,
 		"es6": false,
 		"postcss": true,
+		"preloadBackgroundData": false,
 		"minified": true,
 		"newFeature": true,
 		"coverView": true,
@@ -20,11 +21,13 @@
 			"ignore": [],
 			"disablePlugins": [],
 			"outputPath": ""
-		}
+		},
+		"useCompilerModule": true,
+		"userConfirmedUseCompilerModuleSwitch": false
 	},
 	"compileType": "miniprogram",
 	"libVersion": "2.11.1",
-	"appid": "",
+	"appid": "wx41efc1ed4e8f2180",
 	"projectname": "opencv_wasm",
 	"debugOptions": {
 		"hidedInDevtools": []
