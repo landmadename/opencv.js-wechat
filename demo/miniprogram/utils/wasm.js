@@ -6546,7 +6546,7 @@ Module["imread"] = function (imageSource, callback) {
 };
 Module["imshowed"]=false;
 var canvasCatch = {}
-Module["imshow"] = function (canvasSource, mat) {
+Module["imshow"] = function (canvasSource, mat, contextSource) {
     if(Module["imshowed"]){
         return false;
     }
@@ -6573,27 +6573,35 @@ Module["imshow"] = function (canvasSource, mat) {
             return
     }
     
-    if (canvasCatch[canvasSource] == undefined) {
-        wx.createSelectorQuery().select(canvasSource).node(function (res) {
-            canvas = res.node;
-            context = canvas.getContext("2d");
-            var dpr=wx.getSystemInfoSync().pixelRatio;
-            canvas.width=canvas._width*dpr;
-            canvas.height=canvas._height*dpr;
-            context.scale(dpr,dpr);
-            canvasCatch[canvasSource] = {
-                canvas: canvas,
-                context: context
-            }
+    if (typeof canvasSource === "string") {
+        if (canvasCatch[canvasSource] == undefined) {
+            wx.createSelectorQuery().select(canvasSource).node(function (res) {
+                canvas = res.node;
+                context = canvas.getContext("2d");
+                var dpr=wx.getSystemInfoSync().pixelRatio;
+                canvas.width=canvas._width*dpr;
+                canvas.height=canvas._height*dpr;
+                context.scale(dpr,dpr);
+                canvasCatch[canvasSource] = {
+                    canvas: canvas,
+                    context: context
+                }
+                var imgData = canvas.createImageData(new Uint8ClampedArray(img.data),img.cols,img.rows);
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                context.putImageData(imgData, 0, 0);
+                cv.imshowed=false;
+            }).exec()
+        } else {
+            canvas = canvasCatch[canvasSource]["canvas"]
+            context = canvasCatch[canvasSource]["context"]
             var imgData = canvas.createImageData(new Uint8ClampedArray(img.data),img.cols,img.rows);
             context.clearRect(0, 0, canvas.width, canvas.height);
             context.putImageData(imgData, 0, 0);
-            cv.imshowed=false;
-            console.log(canvas, context, "noCatch")
-        }).exec()
+            cv.imshowed=false;    
+        }    
     } else {
-        canvas = canvasCatch[canvasSource]["canvas"]
-        context = canvasCatch[canvasSource]["context"]
+        canvas = canvasSource
+        context = contextSource
         var imgData = canvas.createImageData(new Uint8ClampedArray(img.data),img.cols,img.rows);
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.putImageData(imgData, 0, 0);

@@ -38,6 +38,8 @@ wasm.init({
 
 #### 注意
 
+要在本地设置里取消勾选```ES6转ES5```
+
 因为小程序没有dom，wx.createOffscreenCanvas不咋好用等原因，进行了一些魔改。
 
 1. 如对无法使用的new Function，用固定的function加动态获取传入参数仿写
@@ -55,12 +57,14 @@ callback 是回调函数
 4. imshow
 
 ```
-cv.imshow(canvasSource, mat)
+cv.imshow(canvasSource, mat, contextSource)
 ```
 
-canvasSource 是输出canvas的id
+canvasSource 是输出canvas的id 或者canvas对象
 
 mat 是要显示的图
+
+contextSource 是输出context的id 或者context对象
 
 
 
