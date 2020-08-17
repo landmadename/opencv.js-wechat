@@ -11,9 +11,9 @@ opencv.js版本为4.3.0
 
 将demo\miniprogram里的项目导入到开发者工具，点击预览，手机上打开调试后，先点击"获取wasm"，约5-10秒初始化完成。
 
-1.点击"灰度lena"，查看是否正常显示灰色的Lena图片。
-
-2.点击"捕获相机"，约5-10秒加载完成后，查看是否正常追踪面部（红框）以及眼睛（蓝框）。
+1. 点击"显示图片"，查看是否正常绘制了Lena图片。
+2. 点击"灰度lena"，查看是否正常显示灰色的Lena图片。
+3. 点击"捕获相机"，约5-10秒加载完成后，查看是否正常追踪面部（红框）以及眼睛（蓝框）。
 
 ### 服务端
 
@@ -35,6 +35,34 @@ wasm.init({
 ```
 
 ### opencv
+
+#### 注意
+
+因为小程序没有dom，wx.createOffscreenCanvas不咋好用等原因，进行了一些魔改。
+
+1. 如对无法使用的new Function，用固定的function加动态获取传入参数仿写
+2. 对某些函数读取外部文件，将FS改造，提前将文件通过小程序的FileSystemManager读入虚拟目录中
+3. imread
+
+```
+cv.imread(imageSource, callback)
+```
+
+imageSource 可以是canvas的id，也可以是以http开头的图片地址。如果是图片地址，则需要存在一个id为#OffscreenCanvas的canvas用来中转（建议隐藏该元素）。
+
+callback 是回调函数
+
+4. imshow
+
+```
+cv.imshow(canvasSource, mat)
+```
+
+canvasSource 是输出canvas的id
+
+mat 是要显示的图
+
+
 
 具体请访问[opencv.js docs](https://docs.opencv.org/4.3.0/d5/d10/tutorial_js_root.html)
 
@@ -123,3 +151,11 @@ calib3d = {'': ['findHomography', 'calibrateCameraExtended', 'drawFrameAxes', 'e
 white_list = makeWhiteList([core, imgproc, objdetect, video, dnn, features2d, photo, aruco, calib3d])
 
 ```
+
+## 其他
+
+Fork自[leo9960](https://github.com/leo9960)/[opencv.js-wechat](https://github.com/leo9960/opencv.js-wechat)
+
+这位大佬似乎只想给大家提供个思路，无心维护这个项目。
+
+刚开始代码拿到手上也不咋能用，也有一些bug，我就根据自己的理解做了一些修改，希望能让它的门槛更低，可以开箱即用。但是因为水平实在有限，如果有什么不对的地方，希望能不吝赐教。
