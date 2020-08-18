@@ -6509,12 +6509,12 @@ noExitRuntime = true;
 
 
 Module["imread"] = function (imageSource, callback) {
-    // @param imageSource 可以是canvas的id，也可以是以http开头的图片地址。如果是图片地址，则需要存在一个id为#OffscreenCanvas的canvas
+    // @param imageSource 可以是canvas的id，也可以是以http或者wxfile开头的图片地址。如果是图片地址，则需要存在一个id为#OffscreenCanvas的canvas
     // @param  callback 回调函数
 
     var cv = Module;
     var canvas, context;
-    if (imageSource.startsWith("http")) {
+    if (imageSource.startsWith("http")||imageSource.startsWith("wxfile")) {
         wx.createSelectorQuery().select('#OffscreenCanvas').node(function (res) {
             canvas = res.node;
             context=canvas.getContext("2d");

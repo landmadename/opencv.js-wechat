@@ -50,7 +50,7 @@ wasm.init({
 cv.imread(imageSource, callback)
 ```
 
-imageSource 可以是canvas的id，也可以是以http开头的图片地址。如果是图片地址，则需要存在一个id为#OffscreenCanvas的canvas用来中转（建议隐藏该元素）。
+imageSource 可以是canvas的id，也可以是以http或者wxfile开头的图片地址。如果是图片地址，则需要存在一个id为#OffscreenCanvas的canvas用来中转（建议隐藏该元素）。
 
 callback 是回调函数
 
